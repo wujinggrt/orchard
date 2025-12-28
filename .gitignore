@@ -1,0 +1,17 @@
+.*
+!.env.example
+!.gitignore
+
+agent
+examples
+
+logs
+*.log
+
+*__pycache__/
+*.pyc
+tmp
+
+*egg-info
+
+data
