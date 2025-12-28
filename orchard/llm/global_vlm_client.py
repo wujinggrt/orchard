@@ -133,7 +133,7 @@ class GlobalVLMClient:
         )
         return response
 
-    async def get_chat_completion_async(
+    async def async_get_chat_completion(
         self,
         *,
         messages: list[Union[dict, Message]],
@@ -142,7 +142,7 @@ class GlobalVLMClient:
     ) -> ChatCompletion:
         if self._vlm_client is None:
             raise RuntimeError("VLM client is not initialized.")
-        response = await self._vlm_client.get_chat_completion_async(
+        response = await self._vlm_client.async_get_chat_completion(
             messages=messages, temperature=temperature, tools=tools
         )
         return response
@@ -167,13 +167,13 @@ def get_chat_completion_content(
     return content
 
 
-async def get_chat_completion_content_async(
+async def async_get_chat_completion_content(
     *,
     messages: list[dict | Message],
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
 ) -> str:
-    response = await GlobalVLMClient.get_instance().get_chat_completion_async(
+    response = await GlobalVLMClient.get_instance().async_get_chat_completion(
         messages=messages, temperature=temperature, tools=tools
     )
     if not response.choices or not response.choices[0].message.content:

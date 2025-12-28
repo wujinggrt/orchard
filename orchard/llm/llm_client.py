@@ -162,7 +162,7 @@ class LLMClient:
             logger.error(f"OpenAI API error: {e}")
             raise
 
-    async def get_chat_completion_async(
+    async def async_get_chat_completion(
         self,
         *,
         messages: list[Union[dict, Message]],
