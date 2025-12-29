@@ -8,6 +8,7 @@
 Global configuration manager, providing a unified interface for accessing configurations and prompts
 """
 
+from datetime import datetime
 import threading
 from typing import Any
 import hydra
@@ -15,6 +16,15 @@ from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def now_resolver(pattern: str):
+    """Handle ${now:} time formatting"""
+    return datetime.now().strftime(pattern)
+
+
+OmegaConf.register_new_resolver("now", now_resolver, replace=True)
+OmegaConf.register_new_resolver("eval", eval, replace=True)
 
 
 class GlobalConfig:
