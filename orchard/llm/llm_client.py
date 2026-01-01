@@ -31,7 +31,7 @@ class LLMClient:
 
     @staticmethod
     def format_messages(
-        *, messages: list[Union[dict, Message]], supports_images: bool = False
+        *, messages: list[dict | Message], supports_images: bool = False
     ) -> list[dict]:
         """
         Format messages for LLM by converting them to OpenAI message format.
@@ -68,7 +68,7 @@ class LLMClient:
                     raise ValueError("Message dict must contain 'role' field")
 
                 # Process base64 images if present and model supports images
-                if supports_images and message.get("base64_image"):
+                if supports_images and "base64_image" in message:
                     # Initialize or convert content to appropriate format
                     if not message.get("content"):
                         message["content"] = []
@@ -88,15 +88,33 @@ class LLMClient:
                         ]
 
                     # Add the image to content
-                    message["content"].append(
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{message['base64_image']}"
-                                # "url": f"data:image;base64,{message['base64_image']}"
-                            },
-                        }
-                    )
+                    base64_image = message["base64_image"]
+                    if isinstance(base64_image, str):
+                        message["content"].append(
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{message['base64_image']}"
+                                    # "url": f"data:image;base64,{message['base64_image']}"
+                                },
+                            }
+                        )
+                    elif isinstance(base64_image, list):
+                        message["content"].extend(
+                            [
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{b64_image}"
+                                    },
+                                }
+                                for b64_image in base64_image
+                            ]
+                        )
+                    else:
+                        raise ValueError(
+                            "base64_image must be a string or list of strings"
+                        )
 
                     # Remove the base64_image field
                     del message["base64_image"]

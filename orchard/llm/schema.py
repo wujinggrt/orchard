@@ -42,13 +42,15 @@ class Message(BaseModel):
     """Represents a chat message in the conversation."""
 
     role: ROLE_TYPE = Field(...)  # type: ignore
-    content: str | None = Field(default=None)
+    content: str | list[str] | None = Field(default=None)
     tool_calls: list[ToolCall] | None = Field(default=None)
     """在 assistant message 中提供作用。"""
     name: str | None = Field(default=None)  # 对话者的名字
     tool_call_id: str | None = Field(default=None)
-    base64_image: str | None = Field(default=None)
+    base64_image: str | list[str] | None = Field(default=None)
+    # TODO: video
 
+    # deprecated，应该用 dump
     def to_dict(self) -> dict:
         """Convert message to dictionary format"""
         message = {"role": self.role}
@@ -68,7 +70,10 @@ class Message(BaseModel):
 
     @classmethod
     def user_message(
-        cls, *, content: str, base64_image: str | None = None
+        cls,
+        *,
+        content: str | list[str] | None,
+        base64_image: str | list[str] | None = None,
     ) -> "Message":
         """Create a user message"""
         return cls(role=Role.USER, content=content, base64_image=base64_image)
@@ -80,7 +85,10 @@ class Message(BaseModel):
 
     @classmethod
     def assistant_message(
-        cls, *, content: str | None = None, base64_image: str | None = None
+        cls,
+        *,
+        content: str | list[str] | None,
+        base64_image: str | list[str] | None = None,
     ) -> "Message":
         """Create an assistant message"""
         return cls(role=Role.ASSISTANT, content=content, base64_image=base64_image)
@@ -89,7 +97,7 @@ class Message(BaseModel):
     def tool_message(
         cls,
         *,
-        content: str,
+        content: str | list[str],
         name,
         tool_call_id: str,
         base64_image: str | None = None,
