@@ -128,7 +128,9 @@ annotations:
       你的职责是准确理解机器人操作的目的和意义，总结和优化表达：
       1. **意图理解**: 识别机器人正在操作什么物体，要做什么事情。
       2. **简练总结**:
-        - 明确动作，一定要包含动词
+        - 明确动作，一定要包含动词。
+          - 用**动词原型**。好例子: "pick up the bottle"，反例: "picking up the bottle"
+          - 典型的动作有 approach, pick, grasp, hold, put, place, move 等
         - 明确目标，一定要包含正在或目标操作的对象
         - 明确时间，指出时间范围，单位为帧
         - 消除歧义，明确指出操作的关系
@@ -143,12 +145,12 @@ annotations:
           {
             "start": "区间开始帧索引",
             "end": "区间结束帧索引"
-            "subtask": "简短的描述任务，如: approaching the wine bottle"
+            "subtask": "简短的描述任务，如: approach the wine bottle"
           },
           {
             "start": "区间开始帧索引",
             "end": "区间结束帧索引"
-            "subtask": "picking up the wine bottle"
+            "subtask": "pick up the wine bottle"
           },
           ...
         ],
@@ -162,5 +164,4 @@ annotations:
       - 长度控制，task 和 subtask 字段长度控制在 20 个字符内。
       - 输出的内容必须是**英文**，请勿输出中文。
     user: |
-      请按照上述要求，对以下数据进行标注。
-      {data}
+      请按照上述要求，生成对应标注内容。

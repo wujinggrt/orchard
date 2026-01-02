@@ -14,7 +14,9 @@ import json_repair
 from loguru import logger
 
 
-def parse_json_from_response(*, response: str) -> Any | None:
+def parse_json_from_response(
+    *, response: str
+) -> dict[str, dict | str | int | float] | None:
     """
     Parse JSON object from LLM text response.
 
@@ -24,7 +26,7 @@ def parse_json_from_response(*, response: str) -> Any | None:
         response (str): LLM text response or JSON string
 
     Returns:
-        Any | None: Parsed JSON object, None if parsing fails
+        dict[str, dict | str | int | float] | None: Parsed JSON object, None if parsing fails
     """
     # Remove leading and trailing whitespace
     response = response.strip()
