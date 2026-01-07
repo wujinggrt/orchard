@@ -10,7 +10,7 @@ from typing import Union, Any
 from orchard.llm.llm_client import LLMClient
 from orchard.utils.logging_utils import get_logger
 from orchard.utils.config import omega_conf_to_dataclass
-from orchard.configs.global_config import get_config
+from orchard.configs.global_config import get_config, get_prompt
 import threading
 from orchard.llm.schema import Message
 from openai.types.chat import ChatCompletion
@@ -125,11 +125,12 @@ class GlobalVLMClient:
         messages: list[Union[dict, Message]],
         temperature: float = 0.7,
         tools: list[dict[str, Any]] | None = None,
+        **kwargs,
     ) -> ChatCompletion:
         if self._vlm_client is None:
             raise RuntimeError("VLM client is not initialized.")
         response = self._vlm_client.get_chat_completion(
-            messages=messages, temperature=temperature, tools=tools
+            messages=messages, temperature=temperature, tools=tools, **kwargs
         )
         return response
 
@@ -139,11 +140,12 @@ class GlobalVLMClient:
         messages: list[Union[dict, Message]],
         temperature: float = 0.7,
         tools: list[dict[str, Any]] | None = None,
+        **kwargs,
     ) -> ChatCompletion:
         if self._vlm_client is None:
             raise RuntimeError("VLM client is not initialized.")
         response = await self._vlm_client.async_get_chat_completion(
-            messages=messages, temperature=temperature, tools=tools
+            messages=messages, temperature=temperature, tools=tools, **kwargs
         )
         return response
 
@@ -154,12 +156,18 @@ def is_initialized() -> bool:
 
 def get_chat_completion_content(
     *,
-    messages: list[Union[dict, Message]],
+    messages: list[Union[dict, Message]] | None,
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
+    **kwargs,
 ) -> str:
+    if messages is None:
+        messages = [
+            Message.system_message(content=get_prompt("chat.default.system")),
+            Message.system_message(content=get_prompt("chat.default.user")),
+        ]
     response = GlobalVLMClient.get_instance().get_chat_completion(
-        messages=messages, temperature=temperature, tools=tools
+        messages=messages, temperature=temperature, tools=tools, **kwargs
     )
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Empty or invalid response from LLM")
@@ -172,9 +180,10 @@ async def async_get_chat_completion_content(
     messages: list[dict | Message],
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
+    **kwargs,
 ) -> str:
     response = await GlobalVLMClient.get_instance().async_get_chat_completion(
-        messages=messages, temperature=temperature, tools=tools
+        messages=messages, temperature=temperature, tools=tools, **kwargs
     )
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Empty or invalid response from LLM")

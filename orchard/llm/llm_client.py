@@ -174,6 +174,7 @@ class LLMClient:
             if tools:
                 params["tools"] = tools
                 params["tool_choice"] = "auto"
+            params.update(kwargs)
             response = self.client.chat.completions.create(**params)
             return response
         except APIError as e:
@@ -214,6 +215,7 @@ class LLMClient:
             if tools:
                 params["tools"] = tools
                 params["tool_choice"] = "auto"
+            params.update(kwargs)
             response = await self.async_client.chat.completions.create(**params)
             return response
         except APIError as e:

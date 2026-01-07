@@ -14,8 +14,11 @@ from typing import Any
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv
+import os
 
-load_dotenv()
+# dotenv_path = Path(__file__).parent.parent.parent.resolve() / ".env"
+dotenv_path = os.path.join(os.path.dirname(__file__), "../../.env")
+load_dotenv(dotenv_path)
 
 
 def now_resolver(pattern: str):
@@ -76,14 +79,13 @@ class GlobalConfig:
 
         try:
             # Try to load the configuration automatically
-
-            config_path = "."
-
-            with hydra.initialize(config_path=config_path, version_base=None):
+            # config_dir 只能是相对路径，相对于本文件所在的模块
+            config_dir = "."
+            with hydra.initialize(config_path=config_dir, version_base=None):
                 self._config = hydra.compose(config_name="config")
                 OmegaConf.resolve(self._config)
 
-            with hydra.initialize(config_path=config_path, version_base=None):
+            with hydra.initialize(config_path=config_dir, version_base=None):
                 self._prompts = hydra.compose(config_name="prompts")
             assert self._prompts is not None, "Prompts not initialized"
         except Exception as e:

@@ -1,3 +1,7 @@
+chat:
+  default:
+    system: You are a helpful assistant.
+    user: Hi!
 approaching:
   detailed_object_analysis:
     system: |
@@ -128,40 +132,110 @@ annotations:
       你的职责是准确理解机器人操作的目的和意义，总结和优化表达：
       1. **意图理解**: 识别机器人正在操作什么物体，要做什么事情。
       2. **简练总结**:
-        - 明确动作，一定要包含动词。
+        - 明确动作，**必须**包含操作的动词。
           - 用**动词原型**。好例子: "pick up the bottle"，反例: "picking up the bottle"
-          - 典型的动作有 approach, pick, grasp, hold, put, place, move 等
-        - 明确目标，一定要包含正在或目标操作的对象
+          - 典型的动作有 approach, pick, grasp, hold, put, place, transfer 等
+        - 明确目标，**可选**，包含操作或交互的对象。
+          - 通常，目标字段必须有操作或交互的物体。
+          - **仅当**操作完成后，机械臂重置到初始位置，才不指出目标物体。
+          - 例如，"the bottle", "the cup", "the screwdriver"。
+        - 明确补语，**可选**。仅在操作物体时，必须指出的额外信息时使用。
+          - 通常指出空间关系，或是描述操作的关系。
+          - 例子，"transfer the screwdriver to the basket"，对应放置螺丝刀到篮子中，常与 transfer 等动作使用。
+          - 错误示例，"grasp the screwdriver to the basket"，抓取不需要明确 basket 的信息。应当为 null.
         - 明确时间，指出时间范围，单位为帧
         - 消除歧义，明确指出操作的关系
         - 简洁精练，不要用副词描述动作。可以用最多一个形容词描述目标对象，最好用鲜明的特征，比如颜色、大小或形状，避免主观或无意义的描述，比如漂亮的、迷人的。
 
       ## 输出要求
-      必须严格按照以下 JSON 格式输出:
+      必须严格按照以下 JSON 格式输出，**不要输出其他内容**:
       ```json
       {
-        "task": "简短的描述整体任务，如: grasp the wine bottle"
+        "task": "简短描述整体任务",
         "frames": [
           {
             "start": "区间开始帧索引",
-            "end": "区间结束帧索引"
-            "subtask": "简短的描述任务，如: approach the wine bottle"
-          },
-          {
-            "start": "区间开始帧索引",
-            "end": "区间结束帧索引"
-            "subtask": "pick up the wine bottle"
+            "end": "区间结束帧索引",
+            "subtask": {
+              "action": "具体的原子任务",
+              "object": "操作/交互的目标",
+              "complement": "补充额外信息，不需要则为 null"
+            }
           },
           ...
         ],
       }
       ```
+      
+      示例：
+      ```json
+      {
+        "task": "move the wine bottle to the basket"
+        "frames": [
+          {
+            "start": "0",
+            "end": "2",
+            "subtask": {
+              "action": "approach the wine bottle",
+              "object": "the wine bottle",
+              "complement": null
+            }
+          },
+          {
+            "start": "2",
+            "end": "4",
+            "subtask": {
+              "action": "grasp",
+              "object": "the wine bottle",
+              "complement": null
+            }
+          },
+          {
+            "start": "4",
+            "end": "7",
+            "subtask": {
+              "action": "transfer",
+              "object": "the wine bottle",
+              "complement": "to the basket"
+            }
+          },
+          {
+            "start": "7",
+            "end": "9",
+            "subtask": {
+              "action": "release",
+              "object": "the wine bottle",
+              "complement": null
+            }
+          },
+          {
+            "start": "9",
+            "end": "14",
+            "subtask": {
+              "action": "move",
+              "object": null,
+              "complement": "to the ready state"
+            }
+          },
+        ],
+      }
+      ```
 
       **重要要求**:
-      - 字段名必须是 `frames`，值必须是串数组，遵循给出的格式。
       - 不要添加其他字段。
-      - 只输出 JSON 对象，不要输出其他任何内容。
-      - 长度控制，task 和 subtask 字段长度控制在 20 个字符内。
+      - 长度控制:
+        - task 字段的单词控制在 20 个字符内。
+        - subtask 下，各字段长度控制在 5 个字符内。
+      - subtask 字段要求：
+        - action: 要求如下：
+          - 必须是动词，代表机械臂的末端执行器（或灵巧手）操作或交互。
+          - 必须意义明确，如 transfer, release, grasp。
+          - 优先用含义明确、且具体的动词。比如：
+            - 优先选择具体且正式的: grasp, transfer, release。
+            - 次选方案: pick, move, place。
+            - 避免含义不明确的组合。
+        - object: 操作或交互的目标对象。如有必要，可以用鲜明的定语修饰。比如颜色等。
+        - complement: 补充信息，如操作或交互的细节。通常是操作物体并移动到的目标位置。
       - 输出的内容必须是**英文**，请勿输出中文。
     user: |
       请按照上述要求，生成对应标注内容。
