@@ -156,15 +156,15 @@ def is_initialized() -> bool:
 
 def get_chat_completion_content(
     *,
-    messages: list[Union[dict, Message]] | None,
+    messages: list[Union[dict, Message]] | None = None,
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
     **kwargs,
 ) -> str:
     if messages is None:
         messages = [
-            Message.system_message(content=get_prompt("chat.default.system")),
-            Message.system_message(content=get_prompt("chat.default.user")),
+            Message.system_message(content=get_prompt(dot_name="chat.default.system")),
+            Message.user_message(content=get_prompt(dot_name="chat.default.user")),
         ]
     response = GlobalVLMClient.get_instance().get_chat_completion(
         messages=messages, temperature=temperature, tools=tools, **kwargs
