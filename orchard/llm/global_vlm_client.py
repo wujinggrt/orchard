@@ -122,7 +122,7 @@ class GlobalVLMClient:
     def get_chat_completion(
         self,
         *,
-        messages: list[Union[dict, Message]],
+        messages: list[dict | Message],
         temperature: float = 0.7,
         tools: list[dict[str, Any]] | None = None,
         **kwargs,
@@ -156,7 +156,7 @@ def is_initialized() -> bool:
 
 def get_chat_completion_content(
     *,
-    messages: list[Union[dict, Message]] | None = None,
+    messages: list[dict | Message | str] | str | None = None,
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
     **kwargs,
@@ -166,6 +166,28 @@ def get_chat_completion_content(
             Message.system_message(content=get_prompt(dot_name="chat.default.system")),
             Message.user_message(content=get_prompt(dot_name="chat.default.user")),
         ]
+    elif isinstance(messages, str):
+        messages = [
+            Message.system_message(content=get_prompt(dot_name="chat.default.system")),
+            Message.user_message(content=messages),
+        ]
+    elif isinstance(messages, list):
+        n = len(messages)
+        if n == 0:
+            raise ValueError("Empty messages")
+        elif n == 1:
+            # use the default system prompt.
+            message = messages[0]
+            messages = [
+                Message.system_message(
+                    content=get_prompt(dot_name="chat.default.system")
+                ),
+                message
+                if isinstance(message, Message)
+                else Message.user_message(content=message),
+            ]
+    else:
+        raise ValueError("Invalid messages")
     response = GlobalVLMClient.get_instance().get_chat_completion(
         messages=messages, temperature=temperature, tools=tools, **kwargs
     )
