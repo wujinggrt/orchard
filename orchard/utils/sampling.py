@@ -3,14 +3,16 @@ import numpy as np
 import random
 
 
-def uniform_sampling(frames: list[Any], n_samples: int = 16) -> list[Any]:
+def uniform_sampling(
+    frames: list[Any], n_samples: int = 16
+) -> tuple[list[Any], list[int]]:
     """
     均匀采样
     frames: 帧列表或数组
 
     示例使用:
         frames = [...]  # 你的帧列表
-        sampled_frames = uniform_sampling(frames, 16)   n_samples: 需要采样的数量
+        sampled_frames, ids = uniform_sampling(frames, 16)   n_samples: 需要采样的数量
     """
     n_frames = len(frames)
 
@@ -27,10 +29,12 @@ def uniform_sampling(frames: list[Any], n_samples: int = 16) -> list[Any]:
     # 确保索引不超出范围。实际上并不会出现超出的情况。
     indices = [min(idx, n_frames - 1) for idx in indices]
 
-    return [frames[i] for i in indices]
+    return [frames[i] for i in indices], indices
 
 
-def equally_spaced_sampling(frames: list[Any], n_samples: int = 16) -> list[Any]:
+def equally_spaced_sampling(
+    frames: list[Any], n_samples: int = 16
+) -> tuple[list[Any], list[int]]:
     """
     等间距采样（包含首尾帧）
     """
@@ -40,17 +44,17 @@ def equally_spaced_sampling(frames: list[Any], n_samples: int = 16) -> list[Any]
         return frames
 
     # 计算等间距索引（包含0和n_frames-1）
-    indices = np.linspace(0, n_frames - 1, n_samples, dtype=int)
+    indices = np.linspace(0, n_frames - 1, n_samples, dtype=int).tolist()
 
     # 确保索引唯一且有序
     indices = sorted(set(indices))
 
-    return [frames[i] for i in indices]
+    return [frames[i] for i in indices], indices
 
 
 def center_weighted_sampling(
     frames: list[Any], n_samples: int = 16, center_ratio: float = 0.6
-) -> list[Any]:
+) -> tuple[list[Any], list[int]]:
     """
     中间区域重点采样
     center_ratio: 中间部分占总采样数的比例
@@ -89,10 +93,12 @@ def center_weighted_sampling(
                 indices.append(i)
                 break
 
-    return [frames[i] for i in indices[:n_samples]]
+    return [frames[i] for i in indices[:n_samples]], indices[:n_samples]
 
 
-def random_sampling(frames: list[Any], n_samples: int = 16, seed=None) -> list[Any]:
+def random_sampling(
+    frames: list[Any], n_samples: int = 16, seed=None
+) -> tuple[list[Any], list[int]]:
     """
     随机采样
     seed: 随机种子，确保可重复性
@@ -109,10 +115,12 @@ def random_sampling(frames: list[Any], n_samples: int = 16, seed=None) -> list[A
     indices = random.sample(range(n_frames), n_samples)
     indices.sort()  # 保持时间顺序
 
-    return [frames[i] for i in indices]
+    return [frames[i] for i in indices], indices
 
 
-def adaptive_sampling_by_difference(frames: list[Any], n_samples: int = 16) -> list[Any]:
+def adaptive_sampling_by_difference(
+    frames: list[Any], n_samples: int = 16
+) -> tuple[list[Any], list[int]]:
     """
     基于帧间差异的自适应采样。
     TODO: 支持 metric
@@ -149,4 +157,4 @@ def adaptive_sampling_by_difference(frames: list[Any], n_samples: int = 16) -> l
             indices.append(idx)
 
     indices.sort()
-    return [frames[i] for i in indices]
+    return [frames[i] for i in indices], indices
