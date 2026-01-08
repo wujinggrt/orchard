@@ -9,7 +9,7 @@ Provides global access to LLMManager instances
 from typing import Union, Any
 from orchard.llm.llm_client import LLMClient
 from orchard.utils.logging_utils import get_logger
-from orchard.utils.config import omega_conf_to_dataclass
+from hydra.utils import instantiate
 from orchard.configs.global_config import get_config, get_prompt
 import threading
 from orchard.llm.schema import Message
@@ -89,7 +89,9 @@ class GlobalVLMClient:
                 self._auto_initialized = True
                 return
 
-            self._vlm_client = omega_conf_to_dataclass(vlm_config)
+            # as LLMClient
+            self._vlm_client = instantiate(vlm_config)
+            # self._vlm_client = omega_conf_to_dataclass(vlm_config)
             # self._vlm_client = LLMClient(config=vlm_config)
             logger.info("GlobalVLMClient auto-initialized successfully")
             self._auto_initialized = True
